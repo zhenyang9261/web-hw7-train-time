@@ -1,0 +1,14 @@
+.page-title {
+    background-color: #763626;
+    color: white;
+}
+
+.table-title {
+    background-color: #336b87;
+    color: white;
+    font-weight: bold;
+}
+
+#add-train-btn {
+    background-color: #336b87;
+}
