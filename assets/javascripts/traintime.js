@@ -24,6 +24,12 @@ var trainName, destination, start, frequency;
 // Form field validation error message
 var errMsg = "";
 
+// Unique value for database records
+var index = 0;
+
+// Database reference
+var trainRef = database.ref();
+
 
 /* --------- Functions ---------------- */
 /* 
@@ -77,7 +83,9 @@ function addTrain() {
     };
 
     // Upload train data to the database
-    database.ref().push(newTrain);
+    //database.ref().push(newTrain);
+    //var trainRef = database.ref('trains/' + index);
+    trainRef.child(index).set(newTrain);
 
     // Clear all of the text-boxes
     trainNameInput.val("");
@@ -88,7 +96,7 @@ function addTrain() {
 }
 
 /*
- * Function: Firebase event for adding a record to the database. Add a table row when this happens
+ * Function: Firebase callback for adding a record to the database. Add a table row when this happens
  */
 database.ref().on("child_added", function(snapshot) {
   
@@ -111,19 +119,44 @@ database.ref().on("child_added", function(snapshot) {
   var currentTime = moment();
   var nextTime = (currentTime.add(minAway, "minutes")).format("HH:mm");
 
+  // Create the remove button
+  var removeBtn = $("<button>");
+  removeBtn.attr("value", index);
+  removeBtn.attr("class", "remove-btn");
+  removeBtn.text("remove");
+
   // Create the new row
-  var newRow = $("<tr>").append(
-    $("<td>").text(trainName),
-    $("<td>").text(destination),
-    $("<td>").text(frequency),
-    $("<td>").text(nextTime),
-    $("<td>").text(minAway)
+  var newRow = $("<tr id='tr-"+ index + "'>").append(
+    $("<td value="+ index + ">").text(trainName),
+    $("<td value="+ index + ">").text(destination),
+    $("<td value="+ index + ">").text(frequency),
+    $("<td value="+ index + ">").text(nextTime),
+    $("<td value="+ index + ">").text(minAway),
+    $("<td value="+ index + ">").append(removeBtn)
   );
+  index++;
 
   // Append the new row to the table
   $("#train-table > tbody").append(newRow);
 });
 
+/*
+ * Function: function to remove a child record from the database
+ * Input param: the id of the child record
+ */
+function removeTrain(id) {
+  console.log(id);
+  $("#tr-"+id).remove();
+  trainRef.child(id).remove();
+  
+}
+
+/*
+ * Function: Firebase callback for removing a record to the database. Remove the table row when this happens
+ */
+//database.ref().on("child_removed", function(snapshot) {
+  
+//});
 
 /* ----------- Start here -------------- */
 
@@ -134,7 +167,7 @@ $("document").ready(function() {
     startInput = $("#start-input");
     frequencyInput = $("#frequency-input");
 
-    // Button for adding Employees
+    // Add train button listener
     $("#add-train-btn").on("click", function(event) {
       event.preventDefault();
 
@@ -148,6 +181,13 @@ $("document").ready(function() {
       }
 
     });
+
+    // Remove train button listener
+    $(document).on("click", ".remove-btn", function() {   
+
+      // Call remove function
+      removeTrain($(this).attr("value"));
+  });
 
 });
 
