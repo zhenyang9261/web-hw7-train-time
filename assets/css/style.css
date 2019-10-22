@@ -12,3 +12,8 @@
 #add-train-btn {
     background-color: #336b87;
 }
+
+#info {
+    color: red;
+    margin-top: 3px;
+}
