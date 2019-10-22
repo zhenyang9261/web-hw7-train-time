@@ -36,7 +36,7 @@ function validateInput() {
     trainName = trainNameInput.val().trim();
     destination = destinationInput.val().trim();
     start = startInput.val().trim();
-    frequency = frequencyInput.val().trim();
+    frequency = Number(frequencyInput.val().trim());
 
     // Fail validation if there is any empty field
     if (trainName.length === 0 || destination.length === 0 || start.length === 0 || frequency.length === 0) {
@@ -51,9 +51,11 @@ function validateInput() {
       errMsg = "Please enter start time in the format of military time HH:mm";
       return false;
     }
+
+    console.log(frequency);
     // Fail validation if frequncy is not a positive number
-    if (!(parseInt(frequency) > 0)) {
-      errMsg = "Frequency must be a number";
+    if (!(Number.isInteger(frequency)) || frequency <= 0) {
+      errMsg = "Frequency must be a positive integer";
       return false;
     }
 
@@ -138,6 +140,7 @@ $("document").ready(function() {
 
       // Validate user input. If all fields valid, add the train; else, display error message
       if (validateInput()) {
+        $("#info").text("");
         addTrain();
       }
       else {
