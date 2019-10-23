@@ -15,6 +15,12 @@ firebase.initializeApp(config);
   
 var database = firebase.database();
 
+// Database reference
+var trainRef = database.ref();
+
+// Unique value for database records
+var index = 0;
+
 // HTML input fields
 var trainNameInput, destinationInput, startInput, frequencyInput;
 
@@ -24,12 +30,8 @@ var trainName, destination, start, frequency;
 // Form field validation error message
 var errMsg = "";
 
-// Unique value for database records
-var index = 0;
-
-// Database reference
-var trainRef = database.ref();
-
+// Array to keep track of all train info
+var trains = [];
 
 /* --------- Functions ---------------- */
 /* 
@@ -47,7 +49,8 @@ function validateInput() {
     // Fail validation if there is any empty field
     if (trainName.length === 0 || destination.length === 0 || start.length === 0 || frequency.length === 0) {
       errMsg = "All fields must be filled."
-      return false;
+      $("#info").text(errMsg);
+      return;
     }
 
     // Fail validation if tart time is not in the format of HH:mm
@@ -55,18 +58,49 @@ function validateInput() {
     if (!timePattern.test(start)) {
       console.log(start);
       errMsg = "Please enter start time in the format of military time HH:mm";
-      return false;
+      $("#info").text(errMsg);
+      return;
     }
 
-    console.log(frequency);
     // Fail validation if frequncy is not a positive number
     if (!(Number.isInteger(frequency)) || frequency <= 0) {
       errMsg = "Frequency must be a positive integer";
-      return false;
+      $("#info").text(errMsg);
+      return;
     }
 
+    // Fail validation if the train name already exists
+    var query = trainRef.orderByChild("trainName").equalTo(trainName);
+    query.once("value", function(snapshot) {
+
+      if (snapshot.exists()){
+        const userData = snapshot.val();
+        console.log("exists!", userData);
+        errMsg = "Train name exists already."
+        $("#info").text(errMsg);
+        return;
+      }
+      else {
+        console.log("not exist");
+        $("#info").text("");
+        addTrain();
+      }
+    
+    //   snapshot.forEach(function(child) {
+    //     console.log(child.key);
+    //   });
+
+    });
+
+    // trainRef.orderByChild("trainName").equalTo(trainName).once("value",snapshot => {
+    //   if (snapshot.exists()){
+    //     const userData = snapshot.val();
+    //     console.log("exists!", userData);
+    //   }
+    // });
+
     // All validations passed
-    return true;
+    return;
 }
 
 /* 
@@ -83,8 +117,6 @@ function addTrain() {
     };
 
     // Upload train data to the database
-    //database.ref().push(newTrain);
-    //var trainRef = database.ref('trains/' + index);
     trainRef.child(index).set(newTrain);
 
     // Clear all of the text-boxes
@@ -146,7 +178,7 @@ database.ref().on("child_added", function(snapshot) {
  */
 function removeTrain(id) {
   console.log(id);
-  $("#tr-"+id).remove();
+  
   trainRef.child(id).remove();
   
 }
@@ -154,9 +186,11 @@ function removeTrain(id) {
 /*
  * Function: Firebase callback for removing a record to the database. Remove the table row when this happens
  */
-//database.ref().on("child_removed", function(snapshot) {
-  
-//});
+database.ref().on("child_removed", function(snapshot) {
+    console.log(snapshot.key());
+
+    $("#tr-"+snapshot.key()).remove();
+});
 
 /* ----------- Start here -------------- */
 
@@ -172,14 +206,7 @@ $("document").ready(function() {
       event.preventDefault();
 
       // Validate user input. If all fields valid, add the train; else, display error message
-      if (validateInput()) {
-        $("#info").text("");
-        addTrain();
-      }
-      else {
-        $("#info").text(errMsg);
-      }
-
+      validateInput()
     });
 
     // Remove train button listener
@@ -187,7 +214,7 @@ $("document").ready(function() {
 
       // Call remove function
       removeTrain($(this).attr("value"));
-  });
+    });
 
 });
 
