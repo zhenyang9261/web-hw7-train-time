@@ -17,3 +17,15 @@
     color: red;
     margin-top: 3px;
 }
+
+.remove-btn {
+    font-weight: bold;
+    background-color: #efefef;
+    color: #336b87;
+}
+
+.remove-btn :hover {
+    font-weight: bold;
+    background-color: #336b87;
+    color: white;
+}
