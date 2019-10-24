@@ -24,14 +24,14 @@ var trainNameInput, destinationInput, startInput, frequencyInput;
 // Variables to hold HTML field values
 var trainName, destination, start, frequency;
 
-
 /* --------- Functions ---------------- */
 /* 
- * Function: to validation HTML field input. 
- * Return value: true - all field inputs valid. false - invalid input detected
+ * Function: to validation HTML field input. If all validations pass, add the train to the database
+ * (Check duplicate train name is a callback function. Add train function has to be called inside that function.)
  */
 function validateInput() {
 
+    // Get user input values
     trainNameInput = $("#train-name-input");
     destinationInput = $("#destination-input");
     startInput = $("#start-input");
@@ -85,7 +85,6 @@ function validateInput() {
 
 /* 
  * Function: to upload new record in firebase database
- * Input param: the train object to add
  */
 function addTrain() {
 
@@ -98,7 +97,6 @@ function addTrain() {
     };
 
     // Upload train data to the database
-    //trainRef.child(index).set(newTrain);
     trainRef.push(newTrain);
 
     // Clear all of the text-boxes
@@ -120,13 +118,30 @@ database.ref().on("child_added", function(snapshot) {
   var frequency = snapshot.val().frequency;
   var key = snapshot.key;
 
-  // Calculate minutes away. 
-  var totalMin = moment().diff(moment(start, "X"), "minutes");
-  var minAway = frequency - (totalMin % frequency);
-
-  // Calculate the time of next train
+  // Calculate minutes away and the time of next train based on current time and start time. 
   var currentTime = moment();
-  var nextTime = (currentTime.add(minAway, "minutes")).format("HH:mm");
+  var startTime = moment(start, "X");
+  var totalMin, minAway, nextTime;
+
+  // If the start time is before current time
+  if (startTime.isBefore(currentTime)) {
+
+    // Minutes away
+    totalMin = currentTime.diff(startTime, "minutes");
+    minAway = frequency - (totalMin % frequency);
+
+    // Time of next train
+    nextTime = (currentTime.add(minAway, "minutes")).format("HH:mm");
+  }
+  // If the start time is in the future
+  else {
+
+    // Minutes away (minutes from now to the start time)
+    minAway = startTime.diff(currentTime, "minutes");
+
+    // Time of next train (the start time)
+    nextTime = startTime.format("HH:mm");
+  }
 
   // Create the remove button, set value of the button as the child record key for the purposes of edit/remove.
   var removeBtn = $("<button>");
@@ -150,7 +165,7 @@ database.ref().on("child_added", function(snapshot) {
 
 /*
  * Function: function to remove a child record from the database
- * Input param: the id of the child record
+ * Input param: the key of the child record
  */
 function removeTrain(id) {
  
