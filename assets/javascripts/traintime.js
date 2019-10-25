@@ -1,5 +1,3 @@
-/* ----------- Global Variables ------------------ */
-
 // Database related variables
 var config = {
     apiKey: "AIzaSyAz0IqZQwX3Yl2XZYaaZ9FAUaGT7djz6kU",
@@ -15,7 +13,6 @@ firebase.initializeApp(config);
   
 var database = firebase.database();
 
-// Database reference
 var trainRef = database.ref();
 
 // HTML input fields
@@ -26,7 +23,7 @@ var trainName, destination, start, frequency;
 
 /* --------- Functions ---------------- */
 /* 
- * Function: to validation HTML field input. If all validations pass, add the train to the database
+ * Function: Validate HTML field inputs. If all validations pass, add the train to the database
  * (Check duplicate train name is a callback function. Add train function has to be called inside that function.)
  */
 function validateInput() {
@@ -71,15 +68,11 @@ function validateInput() {
         return;
       }
       else {
-        // Clean the error message display field
         $("#info").text("");
 
-        // Add the train
         addTrain();
       }
-
     });
-
     return;
 }
 
@@ -118,7 +111,6 @@ database.ref().on("child_added", function(snapshot) {
   var frequency = snapshot.val().frequency;
   var key = snapshot.key;
 
-  // Calculate minutes away and the time of next train based on current time and start time. 
   var currentTime = moment();
   var startTime = moment(start, "X");
   var totalMin, minAway, nextTime;
@@ -196,7 +188,6 @@ $("document").ready(function() {
     // Remove train button listener
     $(document).on("click", ".remove-btn", function() {   
 
-      // Call remove function
       removeTrain($(this).attr("value"));
     });
 
